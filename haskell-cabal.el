@@ -1058,12 +1058,21 @@ Source names from main-is and c-sources sections are left untouched
   (cl-case (haskell-cabal-classify-line)
     (section-data
      (save-excursion
-       (let ((indent (haskell-cabal-section-data-indent-column
-                      (haskell-cabal-subsection))))
-         (indent-line-to indent)
-         (beginning-of-line)
-         (when (looking-at "[ ]*\\([ ]\\{2\\},[ ]*\\)")
-           (replace-match ", " t t nil 1)))))
+       (let* ((indent (haskell-cabal-section-data-indent-column
+                       (haskell-cabal-subsection)))
+              (start (haskell-cabal-section-start
+                      (haskell-cabal-subsection)))
+              (leading-comma (save-excursion
+                                (goto-char start)
+                                (looking-at "[ \t]*[\n]*[ \t]*,"))))
+         (if leading-comma
+             (indent-line-to indent)
+           (progn
+             (indent-line-to indent)
+             (beginning-of-line)
+             (when (looking-at "[ ]*\\([ ]\\{2\\},[ ]*\\)")
+               (goto-char (match-beginning 1))
+               (replace-match ", " t t nil 1)))))))
     (empty
      (indent-relative)))
   (haskell-cabal-forward-to-line-entry))
